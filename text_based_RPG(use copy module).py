@@ -8,11 +8,13 @@ class Player:
         self.player_class = "none"
         self.level = 1
         self.exp = 0
+        self.max_hp = 100
         self.hp = 100
         self.mp = 100
         self.atk = 0
         self.def_stat = 0
         self.gold = 0
+        self.skill = "none"
         self.gear = "none"
     def show_status(self):
         print("===== STATUS =====")
@@ -25,6 +27,7 @@ class Player:
         print(f"Atk: {self.atk}")
         print(f"Def: {self.def_stat}")
         print(f"Gold: {self.gold}")
+        print(f"Skill: {self.skill}")
         print(f"Gear: {self.gear}")
         print("==================")
     def choose_class(self):
@@ -37,34 +40,55 @@ class Player:
             choice = input("Enter your choice: ")
             if choice == "1":
                 self.player_class = "Warrior"
+                self.max_hp = 150
                 self.hp = 150
                 self.mp = 50
                 self.atk = 25
                 self.def_stat = 20
+                self.skill = "Steel Strike"
                 self.gear = "Rusty Sword"
                 print("You became a Warrior!")
                 break
             elif choice == "2":
                 self.player_class = "Mage"
+                self.max_hp = 80
                 self.hp = 80
                 self.mp = 180
                 self.atk = 35
                 self.def_stat = 8
+                self.skill = "Fireball"
                 self.gear = "Wooden Staff"
                 print("You became a Mage!")
                 break
             elif choice == "3":
                 self.player_class = "Rogue"
+                self.max_hp = 110
                 self.hp = 110
                 self.mp = 80
                 self.atk = 30
                 self.def_stat = 12
                 self.gear = "Old Dagger"
+                self.skill = "Shadow Stab"
                 print("You became a Rogue!")
                 break
             else :
                 print("Invalid choice!")
-
+    def level_up(self):
+        while self.exp >= 100:
+            if self.exp >= 100:
+                self.exp = (player.exp - 100)
+                self.level += 1
+                self.hp += 15
+                self.mp += 15
+                self.atk += 3
+                self.def_stat += 3
+                print("=====================")
+                print("level up!!")
+                print(f"now your level is : {player.level}!!")
+    def heal(self):
+        if self.hp < (self.max_hp + ((self.level - 1) * 15)):
+            self.hp = (self.max_hp + ((self.level - 1) * 15))
+            print("I've recovered my strength")
 #몬스터 클래스
 class Monster:
     def __init__(self, name, hp, atk, def_stat, exp, gold):
@@ -124,9 +148,10 @@ def select_player_action():
         try:
             print("====== Battle Menu =====")
             print("1. attack")
-            print("2. Run away")
+            print("2. skill")
+            print("3. Run away")
             action = int(input("Enter your choice: "))
-            if action > 3:
+            if action > 4:
                 print("Invalid choice")
             else:
                 return action
@@ -149,6 +174,59 @@ def player_attacks(action, enemy, player):
                 print(f"Monster's remaining physical strength : {enemy.hp}")
                 win_or_lose = "continue"
                 return win_or_lose
+
+
+def player_skill(action, enemy, player):
+    if action == 2:
+        if player.skill == "Steel Strike":
+            print("you use Steel Strike!!")
+            if ((player.atk * 1.5 + 10) - enemy.def_stat) <= 0:
+                print("Monster's defense is too strong to skill")
+                win_or_lose = "continue"
+                return win_or_lose
+            elif ((player.atk * 1.5 + 10) - enemy.def_stat) > 0:
+                enemy.hp -= (player.atk * 1.5 +10) - enemy.def_stat
+                if enemy.hp <= 0:
+                    print("Victory!!")
+                    win_or_lose = "victory"
+                    return win_or_lose
+                elif enemy.hp > 0:
+                    print(f"Monster's remaining physical strength : {enemy.hp}")
+                    win_or_lose = "continue"
+                    return win_or_lose
+        elif player.skill == "Fireball":
+            print("you use Fireball!!")
+            if ((player.atk * 1.8 + 20) - enemy.def_stat) <= 0:
+                print("Monster's defense is too strong to skill")
+                win_or_lose = "continue"
+                return win_or_lose
+            elif ((player.atk * 1.8 + 20) - enemy.def_stat) > 0:
+                enemy.hp -= (player.atk * 1.8 + 20) - enemy.def_stat
+                if enemy.hp <= 0:
+                    print("Victory!!")
+                    win_or_lose = "victory"
+                    return win_or_lose
+                elif enemy.hp > 0:
+                    print(f"Monster's remaining physical strength : {enemy.hp}")
+                    win_or_lose = "continue"
+                    return win_or_lose
+        elif player.skill == "Shadow Stab":
+            print("you use Shadow Stab!!")
+            if ((player.atk * 2.0) - enemy.def_stat) <= 0:
+                print("Monster's defense is too strong to skill")
+                win_or_lose = "continue"
+                return win_or_lose
+            elif (player.atk * 2.0) - enemy.def_stat > 0:
+                enemy.hp -= (player.atk * 2.0) - enemy.def_stat
+                if enemy.hp <= 0:
+                    print("Victory!!")
+                    win_or_lose = "victory"
+                    return win_or_lose
+                elif enemy.hp > 0:
+                    print(f"Monster's remaining physical strength : {enemy.hp}")
+                    win_or_lose = "continue"
+                    return win_or_lose
+
 
 def monster_attacks(enemy, player):
     if (enemy.atk - player.def_stat) > 0:
@@ -176,7 +254,7 @@ def processing_the_outcome_of_the_battle(win_or_lose, enemy, player):
         pass
 
 def to_run_away(action):
-    if action == 2:
+    if action == 3:
         run_way = random.randint(1, 10)
         if run_way > 3:
             print("Run away, successful")
@@ -202,7 +280,17 @@ def battle(player, monster_list):
                 if a == "defeat":
                     processing_the_outcome_of_the_battle(a, enemy, player)
                     break
-        elif action == 2:
+        if action == 2:
+            win_or_lose = player_skill(action, enemy, player)
+            if win_or_lose == "victory":
+                processing_the_outcome_of_the_battle(win_or_lose, enemy, player)
+                break
+            elif win_or_lose == "continue":
+                a = monster_attacks(enemy, player)
+                if a == "defeat":
+                    processing_the_outcome_of_the_battle(a, enemy, player)
+                    break
+        elif action == 3:
             run_away_result = to_run_away(action)
             if run_away_result == "failure":
                 monster_attacks(enemy, player)
@@ -216,19 +304,8 @@ player.choose_class()
 
 while True:
     try:
-        if player.exp >= 100:
-            player.exp = (player.exp - 100)
-            player.level += 1
-            player.hp += 15
-            player.mp += 15
-            player.atk += 3
-            player.def_stat += 3
-            print("=====================")
-            print("level up!!")
-            print(f"now your level is : {player.level}!!")
-        if player.hp < (80 + ((player.level - 1) * 15)):
-            player.hp = (80 + ((player.level - 1) * 15))
-            print("I've recovered my strength")
+        player.level_up()
+        player.heal()
         print("===== Main Menu =====")
         print("1. Enter Dungeon")
         print("2. Check Status")
@@ -237,9 +314,7 @@ while True:
         choice = int(input("Enter your choice: "))
         if choice == 1:
             while True:
-                if player.hp < (80 + ((player.level - 1) * 15)):
-                    player.hp = (80 + ((player.level - 1) * 15))
-                    print("I've recovered my strength")
+                player.heal()
                 print("1. slime Dungeon")
                 print("2. goblin Dungeon")
                 print("3. wolf Dungeon")
